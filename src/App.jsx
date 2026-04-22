@@ -69,10 +69,11 @@ function Board({ squares, onPlay }) {
   const [turnCount, setTurnCount] = useState(0);
   const [xIsNext, setXIsNext] = useState(true);
   const [moveCount, setMoveCount] = useState(0)
+  const [center, setCenter] = useState(0);
   const [index, setIndex] = useState(-1);
 
   function handleClick(i) {
-    if (calculateWinner(squares) || squares[i] && turnCount < 3) {
+    if (center === -1 || center === -2 || calculateWinner(squares) || squares[i] && turnCount < 3) {
       return;
     }
     const nextSquares = squares.slice();
@@ -96,6 +97,14 @@ function Board({ squares, onPlay }) {
           nextSquares[i] = null;
           setIndex(i);
           setMoveCount(prev => prev + 1);
+          if (i != 4 && squares[4] === 'X')
+          {
+            setCenter(2);
+          }
+          else
+          {
+            setCenter(0);
+          }
         }
         else if (moveCount === 1 && !(squares[i]))
         {
@@ -104,6 +113,10 @@ function Board({ squares, onPlay }) {
             nextSquares[i] = 'X';
             setMoveCount(0);
             setXIsNext(!xIsNext);
+            if (center === 2 && calculateWinner(nextSquares) != 'X')
+            {
+              setCenter(-1);
+            }
           }
         }
       }
@@ -114,6 +127,14 @@ function Board({ squares, onPlay }) {
           nextSquares[i] = null;
           setIndex(i);
           setMoveCount(prev => prev + 1);
+          if (i != 4 && squares[4] === 'O')
+          {
+            setCenter(2);
+          }
+          else
+          {
+            setCenter(0);
+          }
         }
         else if (moveCount === 1 && !(squares[i]))
         {
@@ -122,6 +143,10 @@ function Board({ squares, onPlay }) {
             nextSquares[i] = 'O';
             setMoveCount(0);
             setXIsNext(!xIsNext);
+            if (center === 2 && calculateWinner(nextSquares) != 'X')
+            {
+              setCenter(-2);
+            }
           }
         }
       }
@@ -133,7 +158,16 @@ function Board({ squares, onPlay }) {
   let status;
   if (winner) {
     status = 'Winner: ' + winner;
-  } else {
+  } 
+  else if (center === -1)
+  {
+    status = 'Winner: ' + 'O';
+  }
+  else if (center === -2)
+  {
+    status = 'Winner: ' + 'X';
+  }
+  else {
     status = 'Next player: ' + (xIsNext ? 'X' : 'O');
   }
 
