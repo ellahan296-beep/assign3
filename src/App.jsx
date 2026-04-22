@@ -58,7 +58,7 @@ function isNotSurrounded({i, squares})
     {return true;}
   if (i === 6 && (squares[3] === null || squares[4] === null || squares[7] === null))
     {return true;}
-  if (i === 7 && !(squares[3] === null || squares[4] === null || squares[5] === null || squares[6] === null || squares[8] === null))
+  if (i === 7 && (squares[3] === null || squares[4] === null || squares[5] === null || squares[6] === null || squares[8] === null))
     {return true;}
   if (i === 8 && (squares[4] === null || squares[5] === null || squares[7] === null))
     {return true;}
@@ -91,7 +91,7 @@ function Board({ squares, onPlay }) {
     {
       if (xIsNext)
       {
-        if (squares[i] === 'X' && moveCount === 0 && isNotSurrounded(i))
+        if (squares[i] === 'X' && moveCount === 0 && isNotSurrounded({i, squares}))
         {
           nextSquares[i] = null;
           setIndex(i);
@@ -109,7 +109,7 @@ function Board({ squares, onPlay }) {
       }
       if (!xIsNext)
       {
-        if (squares[i] === 'O' && moveCount === 0 && isNotSurrounded(i))
+        if (squares[i] === 'O' && moveCount === 0 && isNotSurrounded({i, squares}))
         {
           nextSquares[i] = null;
           setIndex(i);
@@ -170,9 +170,9 @@ export default function Game() {
     setCurrentMove(nextHistory.length - 1);
   }
 
-  function jumpTo(nextMove) {
-    setCurrentMove(nextMove);
-  }
+  // function jumpTo(nextMove) {
+  //   setCurrentMove(nextMove);
+  // }
 
   // const moves = history.map((squares, move) => {
   //   let description;
