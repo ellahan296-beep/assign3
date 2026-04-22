@@ -8,16 +8,123 @@ function Square({ value, onSquareClick }) {
   );
 }
 
-function Board({ xIsNext, squares, onPlay }) {
+function isValidIndex({ index, i })
+{
+  if (index === i)
+    {return false;}
+  if (index === 0 && (i === 1 || i === 3 || i === 4))
+    {return true;}
+  if (index === 1 && (i === 0 || i === 2 || i === 3 || i === 4 || i === 5))
+    {return true;}
+  if (index === 2 && (i === 1 || i === 4 || i ===5))
+    {return true;}
+  if (index === 3 && !(i === 2 || i === 5 || i === 8))
+    {return true;}
+  if (index === 4)
+    {return true;}
+  if (index === 5 && !(i === 0 || i === 3 || i === 6))
+    {return true;}
+  if (index === 6 && (i === 3 || i === 4 || i === 7))
+    {return true;}
+  if (index === 7 && !(i === 0 || i === 1 || i === 2))
+    {return true;}
+  if (index === 8 && (i === 4 || i === 5 || i === 7))
+    {return true;}
+  {return false;}
+}
+
+function Iterate(arr, squares)
+{
+  for (i in arr)
+  {
+    if (squares[i] === null)
+      {return true;}
+  }
+}
+
+function isNotSurrounded({i, squares})
+{
+  if (i === 0 && (squares[1] === null || squares[3] === null || squares[4] === null))
+    {return true;}
+  if (i === 1 && (squares[0] === null || squares[2] === null || squares[3] === null || squares[4] === null || squares[5] === null))
+    {return true;}
+  if (i === 2 && (squares[1] === null || squares[4] === null || squares[5] === null))
+    {return true;}
+  if (i === 3 && (squares[0] === null || squares[1] === null || squares[4] === null || squares[6] === null || squares[7] === null))
+    {return true;}
+  if (i === 4 && (squares[0] === null || squares[1] === null || squares[2] === null || squares[3] === null || squares[5] === null || squares[6] === null || squares[7] === null || squares[8] === null))
+    {return true;}
+  if (i === 5 && (squares[1] === null || squares[2] === null || squares[4] === null || squares[7] === null || squares[8] === null))
+    {return true;}
+  if (i === 6 && (squares[3] === null || squares[4] === null || squares[7] === null))
+    {return true;}
+  if (i === 7 && !(squares[3] === null || squares[4] === null || squares[5] === null || squares[6] === null || squares[8] === null))
+    {return true;}
+  if (i === 8 && (squares[4] === null || squares[5] === null || squares[7] === null))
+    {return true;}
+  {return false;}
+}
+
+function Board({ squares, onPlay }) {
+  const [turnCount, setTurnCount] = useState(0);
+  const [xIsNext, setXIsNext] = useState(true);
+  const [moveCount, setMoveCount] = useState(0)
+  const [index, setIndex] = useState(-1);
+
   function handleClick(i) {
-    if (calculateWinner(squares) || squares[i]) {
+    if (calculateWinner(squares) || squares[i] && turnCount < 3) {
       return;
     }
     const nextSquares = squares.slice();
-    if (xIsNext) {
-      nextSquares[i] = 'X';
-    } else {
-      nextSquares[i] = 'O';
+    if (turnCount < 3)
+    {
+        if (xIsNext) {
+        nextSquares[i] = 'X';
+        setXIsNext(!xIsNext);
+      } else {
+        nextSquares[i] = 'O';
+        setTurnCount(prev => prev + 1);
+        setXIsNext(!xIsNext);
+      }
+    }
+    else
+    {
+      if (xIsNext)
+      {
+        if (squares[i] === 'X' && moveCount === 0 && isNotSurrounded(i))
+        {
+          nextSquares[i] = null;
+          setIndex(i);
+          setMoveCount(prev => prev + 1);
+        }
+        else if (moveCount === 1 && !(squares[i]))
+        {
+          if (isValidIndex({index, i}))
+          {
+            nextSquares[i] = 'X';
+            setMoveCount(0);
+            setXIsNext(!xIsNext);
+          }
+        }
+      }
+      if (!xIsNext)
+      {
+        if (squares[i] === 'O' && moveCount === 0 && isNotSurrounded(i))
+        {
+          nextSquares[i] = null;
+          setIndex(i);
+          setMoveCount(prev => prev + 1);
+        }
+        else if (moveCount === 1 && !(squares[i]))
+        {
+          if (isValidIndex({index, i}))
+          {
+            nextSquares[i] = 'O';
+            setMoveCount(0);
+            setXIsNext(!xIsNext);
+          }
+        }
+      }
     }
     onPlay(nextSquares);
   }
@@ -55,7 +162,6 @@ function Board({ xIsNext, squares, onPlay }) {
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
-  const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
   function handlePlay(nextSquares) {
@@ -68,28 +174,28 @@ export default function Game() {
     setCurrentMove(nextMove);
   }
 
-  const moves = history.map((squares, move) => {
-    let description;
-    if (move > 0) {
-      description = 'Go to move #' + move;
-    } else {
-      description = 'Go to game start';
-    }
-    return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
-      </li>
-    );
-  });
+  // const moves = history.map((squares, move) => {
+  //   let description;
+  //   if (move > 0) {
+  //     description = 'Go to move #' + move;
+  //   } else {
+  //     description = 'Go to game start';
+  //   }
+  //   return (
+  //     <li key={move}>
+  //       <button onClick={() => jumpTo(move)}>{description}</button>
+  //     </li>
+  //   );
+  // });
 
   return (
     <div className="game">
       <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        <Board squares={currentSquares} onPlay={handlePlay} />
       </div>
-      <div className="game-info">
+      {/* <div className="game-info">
         <ol>{moves}</ol>
-      </div>
+      </div> */}
     </div>
   );
 }
