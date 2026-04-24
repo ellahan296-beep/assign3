@@ -154,6 +154,36 @@ class TestChorusLapilli(unittest.TestCase):
         self.assertTileIs(tiles[0], self.SYMBOL_BLANK)
         tiles[0].click()
         self.assertTileIs(tiles[0], self.SYMBOL_X)
+    
+    def test_winning_end_game(self):
+        '''Check if winning means that no more moves can be played'''
+        tiles = self.driver.find_elements(By.XPATH, self.BOARD_TILE_XPATH)
+        tiles[0].click()
+        tiles[1].click()
+        tiles[3].click()
+        tiles[2].click()
+        tiles[6].click()
+        # X has won, so clicking 5 should do nothing
+        tiles[5].click()
+        self.assertTileIs(tiles[5], self.SYMBOL_BLANK)
+
+    def test_alternating(self):
+        '''Check if players alternate between X and O'''
+        tiles = self.driver.find_elements(By.XPATH, self.BOARD_TILE_XPATH)
+        tiles[0].click()
+        self.assertTileIs(tiles[0], self.SYMBOL_X)
+        tiles[1].click()
+        self.assertTileIs(tiles[1], self.SYMBOL_O)
+
+    def test_no_overwriting(self):
+        '''Check that clicking a tile again doesn't overwrite it'''
+        tiles = self.driver.find_elements(By.XPATH, self.BOARD_TILE_XPATH)
+        self.assertTileIs(tiles[0], self.SYMBOL_BLANK)
+        tiles[0].click()
+        self.assertTileIs(tiles[0], self.SYMBOL_X)
+        tiles[0].click()
+        #should not be overwritten to O
+        self.assertTileIs(tiles[0], self.SYMBOL_X)
 
 
 # ================= [DO NOT MAKE ANY CHANGES BELOW THIS LINE] =================

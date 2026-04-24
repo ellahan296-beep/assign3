@@ -1,5 +1,18 @@
 import { useState } from 'react';
 
+const validMove = 
+{
+  0: [1, 3, 4],
+  1: [0, 2, 3, 4, 5],
+  2: [1, 4, 5],
+  3: [0, 1, 4, 6, 7],
+  4: [0, 1, 2, 3, 5, 6, 7, 8],
+  5: [1, 2, 4, 7, 8],
+  6: [3, 4, 7],
+  7: [3, 4, 5, 6, 8],
+  8: [4, 5, 7]
+}
+
 function Square({ value, onSquareClick }) {
   return (
     <button className="square" onClick={onSquareClick}>
@@ -12,57 +25,46 @@ function isValidIndex({ index, i })
 {
   if (index === i)
     {return false;}
-  if (index === 0 && (i === 1 || i === 3 || i === 4))
-    {return true;}
-  if (index === 1 && (i === 0 || i === 2 || i === 3 || i === 4 || i === 5))
-    {return true;}
-  if (index === 2 && (i === 1 || i === 4 || i ===5))
-    {return true;}
-  if (index === 3 && !(i === 2 || i === 5 || i === 8))
-    {return true;}
-  if (index === 4)
-    {return true;}
-  if (index === 5 && !(i === 0 || i === 3 || i === 6))
-    {return true;}
-  if (index === 6 && (i === 3 || i === 4 || i === 7))
-    {return true;}
-  if (index === 7 && !(i === 0 || i === 1 || i === 2))
-    {return true;}
-  if (index === 8 && (i === 4 || i === 5 || i === 7))
-    {return true;}
-  {return false;}
+  const temp = validMove[index].find(elem => elem === i);
+  if (temp != undefined)
+    {return true};
+  return false;
 }
 
-function Iterate(arr, squares)
+function winningMove({i, squares, player})
 {
-  for (i in arr)
+  const temp = validMove[i].map(val => {
+    const nextSquares = squares.slice();
+    if (!(nextSquares[val]))
+      {nextSquares[val] = player;}
+    if (calculateWinner(nextSquares) === player)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  })
+  const temp2 = temp.find(elem => elem === true);
+  if (temp2 === true)
   {
-    if (squares[i] === null)
-      {return true;}
+    return true;
+  }
+  else
+  {
+    return false;
   }
 }
 
 function isNotSurrounded({i, squares})
 {
-  if (i === 0 && (squares[1] === null || squares[3] === null || squares[4] === null))
+  const temp = validMove[i].map(val => squares[val])
+  const temp2 = temp.find(elem => elem === null);
+  if (temp2 === null)
     {return true;}
-  if (i === 1 && (squares[0] === null || squares[2] === null || squares[3] === null || squares[4] === null || squares[5] === null))
-    {return true;}
-  if (i === 2 && (squares[1] === null || squares[4] === null || squares[5] === null))
-    {return true;}
-  if (i === 3 && (squares[0] === null || squares[1] === null || squares[4] === null || squares[6] === null || squares[7] === null))
-    {return true;}
-  if (i === 4 && (squares[0] === null || squares[1] === null || squares[2] === null || squares[3] === null || squares[5] === null || squares[6] === null || squares[7] === null || squares[8] === null))
-    {return true;}
-  if (i === 5 && (squares[1] === null || squares[2] === null || squares[4] === null || squares[7] === null || squares[8] === null))
-    {return true;}
-  if (i === 6 && (squares[3] === null || squares[4] === null || squares[7] === null))
-    {return true;}
-  if (i === 7 && (squares[3] === null || squares[4] === null || squares[5] === null || squares[6] === null || squares[8] === null))
-    {return true;}
-  if (i === 8 && (squares[4] === null || squares[5] === null || squares[7] === null))
-    {return true;}
-  {return false;}
+  else
+    {return false;}
 }
 
 function Board({ squares, onPlay }) {
@@ -73,7 +75,7 @@ function Board({ squares, onPlay }) {
   const [index, setIndex] = useState(-1);
 
   function handleClick(i) {
-    if (center === -1 || center === -2 || calculateWinner(squares) || squares[i] && turnCount < 3) {
+    if (calculateWinner(squares) || squares[i] && turnCount < 3) {
       return;
     }
     const nextSquares = squares.slice();
@@ -94,29 +96,30 @@ function Board({ squares, onPlay }) {
       {
         if (squares[i] === 'X' && moveCount === 0 && isNotSurrounded({i, squares}))
         {
+          const player = 'X';
+          if (squares[4] === 'X' && !(i === 4 || winningMove({i, squares, player})))
+          {
+            return;
+          }
           nextSquares[i] = null;
           setIndex(i);
           setMoveCount(prev => prev + 1);
-          if (i != 4 && squares[4] === 'X')
-          {
-            setCenter(2);
-          }
-          else
-          {
-            setCenter(0);
-          }
         }
         else if (moveCount === 1 && !(squares[i]))
         {
           if (isValidIndex({index, i}))
           {
+            if (squares[4] === 'X')
+            {
+              nextSquares[i] = 'X';
+              if (calculateWinner(nextSquares) != 'X')
+              {
+                return;
+              }
+            }
             nextSquares[i] = 'X';
             setMoveCount(0);
             setXIsNext(!xIsNext);
-            if (center === 2 && calculateWinner(nextSquares) != 'X')
-            {
-              setCenter(-1);
-            }
           }
         }
       }
@@ -124,29 +127,30 @@ function Board({ squares, onPlay }) {
       {
         if (squares[i] === 'O' && moveCount === 0 && isNotSurrounded({i, squares}))
         {
+          const player = 'O';
+          if (squares[4] === 'O' && !(i === 4 || winningMove({i, squares, player})))
+          {
+            return;
+          }
           nextSquares[i] = null;
           setIndex(i);
           setMoveCount(prev => prev + 1);
-          if (i != 4 && squares[4] === 'O')
-          {
-            setCenter(2);
-          }
-          else
-          {
-            setCenter(0);
-          }
         }
         else if (moveCount === 1 && !(squares[i]))
         {
           if (isValidIndex({index, i}))
           {
+            if (squares[4] === 'O')
+            {
+              nextSquares[i] = 'O';
+              if (calculateWinner(nextSquares) != 'O')
+              {
+                return;
+              }
+            }
             nextSquares[i] = 'O';
             setMoveCount(0);
             setXIsNext(!xIsNext);
-            if (center === 2 && calculateWinner(nextSquares) != 'X')
-            {
-              setCenter(-2);
-            }
           }
         }
       }
@@ -159,14 +163,6 @@ function Board({ squares, onPlay }) {
   if (winner) {
     status = 'Winner: ' + winner;
   } 
-  else if (center === -1)
-  {
-    status = 'Winner: ' + 'O';
-  }
-  else if (center === -2)
-  {
-    status = 'Winner: ' + 'X';
-  }
   else {
     status = 'Next player: ' + (xIsNext ? 'X' : 'O');
   }
@@ -204,32 +200,11 @@ export default function Game() {
     setCurrentMove(nextHistory.length - 1);
   }
 
-  // function jumpTo(nextMove) {
-  //   setCurrentMove(nextMove);
-  // }
-
-  // const moves = history.map((squares, move) => {
-  //   let description;
-  //   if (move > 0) {
-  //     description = 'Go to move #' + move;
-  //   } else {
-  //     description = 'Go to game start';
-  //   }
-  //   return (
-  //     <li key={move}>
-  //       <button onClick={() => jumpTo(move)}>{description}</button>
-  //     </li>
-  //   );
-  // });
-
   return (
     <div className="game">
       <div className="game-board">
         <Board squares={currentSquares} onPlay={handlePlay} />
       </div>
-      {/* <div className="game-info">
-        <ol>{moves}</ol>
-      </div> */}
     </div>
   );
 }
